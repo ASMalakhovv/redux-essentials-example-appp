@@ -6,6 +6,7 @@ import store from './app/store'
 import { Provider } from 'react-redux'
 
 import { worker } from './api/server'
+import {BrowserRouter} from "react-router-dom";
 
 // Wrap app rendering so we can wait for the mock API to initialize
 async function start() {
@@ -15,7 +16,9 @@ async function start() {
   ReactDOM.render(
     <React.StrictMode>
       <Provider store={store}>
-        <App />
+          <BrowserRouter>
+              <App/>
+          </BrowserRouter>
       </Provider>
     </React.StrictMode>,
     document.getElementById('root')

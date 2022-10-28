@@ -1,6 +1,7 @@
 import React from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import {useSelector} from "react-redux";
+import PostAuthor from "./PostAuthor";
 
 
 
@@ -30,6 +31,7 @@ const SinglePostPage = ({ match }: PropsType) => {
                 <article className="post">
                     <h2>{post.title}</h2>
                     <p className="post-content">{post.content}</p>
+                    <PostAuthor userId={post.id} />
                 </article>
             </section>
         </div>

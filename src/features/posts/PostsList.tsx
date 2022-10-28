@@ -1,20 +1,34 @@
 import {useSelector} from "react-redux";
 import { Link } from "react-router-dom";
 import React from "react";
+import {RootState} from "../../app/store";
+import PostAuthor from "./PostAuthor";
+import {TimeAgo} from "./TimeAgo";
 
 const PostsList = () => {
-    // @ts-ignore
-    const posts = useSelector(state => state.posts);
+
+    const posts = useSelector((state:RootState) => state.posts);
+
 
     // @ts-ignore
-    const renderedPosts = posts.map(post => (
-        <article className="post-excerpt" key={post.id}>
-            <h3>{post.title}</h3>
-            <p className="post-content">{post.content.substring(0, 100)}</p>
-            <Link to={`/posts/${post.id}`} className="button muted-button">View Post</Link>
-            <Link to={`/editPost/${post.id}`} className="button muted-button">Edit Post</Link>
-        </article>
-    ))
+    const orderedPosts = posts.slice().sort((a, b) => b.date.localeCompare(a.date))
+
+    const renderedPosts = orderedPosts.map(post => {
+
+        return (
+            <article className="post-excerpt" key={post.id}>
+                <h3>{post.title}</h3>
+                <div>
+                    <PostAuthor userId={post.id} />
+                    <TimeAgo timestamp={post.date} />
+                </div>
+                <p className="post-content">{post.content.substring(0, 100)}</p>
+                <Link to={`/posts/${post.id}`} className="button muted-button">
+                    View Post
+                </Link>
+            </article>
+        )
+    })
 
     return (
         <section className="posts-list">

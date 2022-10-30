@@ -19,7 +19,7 @@ export const EditPostForm = ({ match }: PropsType) => {
 
     const onSavePostClicked = () => {
         if (title && content) {
-            dispatch(postUpdated({ id: postId, title, content, date: new Date().toISOString() }))
+            dispatch(postUpdated({ id: postId, title, content, date: new Date().toISOString(), user: postId}))
             history.push(`/posts/${postId}`)
         }
     }

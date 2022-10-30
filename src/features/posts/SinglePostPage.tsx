@@ -3,6 +3,8 @@ import { RouteComponentProps } from 'react-router-dom';
 import {useSelector} from "react-redux";
 import PostAuthor from "./PostAuthor";
 import {ReactionButtons} from "./ReactionButtons";
+import {selectPostById} from "./postsSlice";
+import {RootState} from "../../app/store";
 
 
 
@@ -15,8 +17,7 @@ export type PropsType = RouteComponentProps<Match>
 const SinglePostPage = ({ match }: PropsType) => {
     const { postId } = match.params;
 
-    // @ts-ignore
-    const post = useSelector(state => state.posts.find(post => post.id === postId));
+    const post = useSelector((state:RootState) => selectPostById(state,postId));
 
     if(!post) {
         return (

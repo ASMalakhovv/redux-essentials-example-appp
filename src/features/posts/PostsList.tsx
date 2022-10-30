@@ -4,6 +4,7 @@ import React from "react";
 import {RootState} from "../../app/store";
 import PostAuthor from "./PostAuthor";
 import {TimeAgo} from "./TimeAgo";
+import {ReactionButtons} from "./ReactionButtons";
 
 const PostsList = () => {
 
@@ -21,6 +22,7 @@ const PostsList = () => {
                 <div>
                     <PostAuthor userId={post.id} />
                     <TimeAgo timestamp={post.date} />
+                    <ReactionButtons post={post} />
                 </div>
                 <p className="post-content">{post.content.substring(0, 100)}</p>
                 <Link to={`/posts/${post.id}`} className="button muted-button">

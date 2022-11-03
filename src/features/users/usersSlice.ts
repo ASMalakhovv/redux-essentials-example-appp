@@ -1,7 +1,8 @@
 import {createAsyncThunk, createSlice} from "@reduxjs/toolkit";
 import {client} from "../../api/client";
+import {RootState} from "../../app/store";
 
-type User = { id: string, name: string }
+export type User = { id: string, name: string }
 
 const initialState: User[] = []
 
@@ -20,5 +21,10 @@ const usersSlice = createSlice({
         })
     }
 })
+
+export const selectAllUsers = (state:RootState) => state.users;
+
+export const selectUserById = (state: RootState, userId: string) =>
+    state.users.find(user => user.id === userId);
 
 export default usersSlice.reducer

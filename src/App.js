@@ -21,8 +21,7 @@ function App() {
       <Navbar />
       <div className="App">
         <Switch>
-            <Route
-                exact
+            <Route exact
                 path="/"
                 render={() => (
                     <>

@@ -1,4 +1,11 @@
-import {createAsyncThunk, createSlice, nanoid, PayloadAction} from "@reduxjs/toolkit";
+import {
+    createAsyncThunk,
+    createEntityAdapter,
+    createSelector,
+    createSlice, EntityState,
+    nanoid,
+    PayloadAction
+} from "@reduxjs/toolkit";
 import {Keys} from "./ReactionButtons";
 import {RootState} from "../../app/store";
 import {client} from "../../api/client";
@@ -21,16 +28,18 @@ export type Post = {
 };
 
 type InitialStatePostsSlice = {
-    posts: Post[]
     status: RequestStatusSlice
     error: string | null
 }
 
-const initialState: InitialStatePostsSlice = {
-    posts: [],
+const postsAdapter = createEntityAdapter<Post>({
+    sortComparer: (a, b) => b.date.localeCompare(a.date)
+})
+
+const initialState:EntityState<Post> & InitialStatePostsSlice = postsAdapter.getInitialState({
     status: 'idle',
     error: null
-};
+})
 
 // THUNK
 export const fetchPosts = createAsyncThunk('posts/fetchPosts', async () => {
@@ -51,14 +60,14 @@ const postsSlice = createSlice({
     reducers: {
         reactionAdded(state, action: PayloadAction<{ id: string, reactionName: Keys }>) {
             const {id, reactionName} = action.payload;
-            const existingPost = state.posts.find(p => p.id === id)
+            const existingPost = state.entities[id]
             if (existingPost) {
                 existingPost.reactions[reactionName]++;
             }
         },
         postAdded: {
             reducer(state, action: PayloadAction<Post>) {
-                state.posts.push(action.payload);
+                // state.entities.push(action.payload);
             },
             prepare(title: string, content: string, userId) {
                 return {
@@ -82,7 +91,7 @@ const postsSlice = createSlice({
         },
         postUpdated(state, action: PayloadAction<Omit<Post, 'reactions'>>) {
             const {id, content, title} = action.payload;
-            const existingPost = state.posts.find(p => p.id === id);
+            const existingPost = state.entities[id]
             if (existingPost) {
                 existingPost.title = title;
                 existingPost.content = content;
@@ -95,23 +104,28 @@ const postsSlice = createSlice({
         });
         builder.addCase(fetchPosts.fulfilled, (state, action) => {
             state.status = 'succeeded'
-            state.posts = state.posts.concat(action.payload)
+            postsAdapter.upsertMany(state, action.payload)
         });
         builder.addCase(fetchPosts.rejected, (state, action) => {
             state.status = 'failed'
             // @ts-ignore
             state.error = action.error.message
         });
-        builder.addCase(addNewPost.fulfilled, (state, action) => {
-            state.posts.push(action.payload)
-        })
+        builder.addCase(addNewPost.fulfilled, postsAdapter.addOne);
     }
 });
-
-export const selectAllPosts = (state: RootState) => state.posts.posts;
-
-export const selectPostById = (state: RootState, postId: string) => state.posts.posts.find(p => p.id === postId);
 
 export const {postAdded, postUpdated, reactionAdded} = postsSlice.actions
 
 export default postsSlice.reducer;
+
+export const {
+    selectAll: selectAllPosts,
+    selectById: selectPostById,
+    selectIds: selectPostIds
+} = postsAdapter.getSelectors((state: RootState) => state.posts)
+
+export const selectPostsByUser = createSelector(
+    [selectAllPosts, (state:RootState, userId:string) => userId],
+    (posts, userId) => posts.filter(post => post.user === userId)
+)

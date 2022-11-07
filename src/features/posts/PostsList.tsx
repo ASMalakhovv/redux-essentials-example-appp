@@ -1,56 +1,62 @@
 import {useDispatch, useSelector} from "react-redux";
-import { Link } from "react-router-dom";
+import {Link} from "react-router-dom";
 import React, {useEffect} from "react";
 import {RootState} from "../../app/store";
 import PostAuthor from "./PostAuthor";
 import {TimeAgo} from "./TimeAgo";
 import {ReactionButtons} from "./ReactionButtons";
-import {fetchPosts, Post, selectAllPosts} from "./postsSlice";
+import {fetchPosts, Post, selectAllPosts, selectPostById, selectPostIds} from "./postsSlice";
 import {Spinner} from "../../components/Spinner";
+import {EntityId} from "@reduxjs/toolkit";
 
-const PostExcerpt = ({ post }: { post: Post }) => {
+const PostExcerpt = React.memo(({postId}: { postId: EntityId }) => {
+    const post = useSelector((state: RootState) => selectPostById(state, postId))
+
+
     return (
         <article className="post-excerpt">
-            <h3>{post.title}</h3>
-            <div>
-                <PostAuthor userId={post.user} />
-                <TimeAgo timestamp={post.date} />
-            </div>
-            <p className="post-content">{post.content.substring(0, 100)}</p>
-
-            <ReactionButtons post={post} />
-            <Link to={`/posts/${post.id}`} className="button muted-button">
-                View Post
-            </Link>
+            {post &&
+                <>
+                    <h3>{post.title}</h3>
+                    <div>
+                        <PostAuthor userId={post.user}/>
+                        <TimeAgo timestamp={post.date}/>
+                    </div>
+                    <p className="post-content">{post.content.substring(0, 100)}</p>
+                    <ReactionButtons post={post}/>
+                    <Link
+                        to={`/posts/${post.id}`} className="button muted-button">
+                        View Post
+                    </Link>
+                </>
+            }
         </article>
     )
-}
+})
 
 const PostsList = () => {
 
     const posts = useSelector(selectAllPosts);
-    const postStatus = useSelector((state:RootState) => state.posts.status);
+    const postStatus = useSelector((state: RootState) => state.posts.status);
     const error = useSelector((state: RootState) => state.posts.error);
     const dispatch = useDispatch();
+    const orderedPostIds = useSelector(selectPostIds)
 
     useEffect(() => {
         if (postStatus === 'idle') {
             dispatch(fetchPosts());
         }
-    },[postStatus, dispatch])
+    }, [postStatus, dispatch])
 
     let content
 
     if (postStatus === 'loading') {
-        content = <Spinner text="Loading..." />
+        content = <Spinner text="Loading..."/>
     } else if (postStatus === 'succeeded') {
         // Sort posts in reverse chronological order by datetime string
-        const orderedPosts = posts
-            .slice()
-            .sort((a, b) => b.date.localeCompare(a.date))
 
-        content = orderedPosts.map(post => (
-            <PostExcerpt key={post.id} post={post} />
+        content = orderedPostIds.map(postId => (
+            <PostExcerpt key={postId} postId={postId}/>
         ))
     } else if (postStatus === 'failed') {
         content = <div>{error}</div>

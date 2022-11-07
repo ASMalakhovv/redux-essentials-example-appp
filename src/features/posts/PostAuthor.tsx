@@ -1,13 +1,14 @@
 import React from 'react';
 import {useSelector} from "react-redux";
 import {RootState} from "../../app/store";
+import {selectUserById} from "../users/usersSlice";
 
 type PostAuthorProps = {
     userId: string
 }
 
 const PostAuthor = ({ userId }: PostAuthorProps) => {
-    const author = useSelector((state:RootState) => state.users.find(user => user.id === userId))
+    const author = useSelector((state:RootState) => selectUserById(state, userId))
 
 
 

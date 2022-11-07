@@ -3,6 +3,7 @@ import {useDispatch, useSelector} from 'react-redux'
 import { nanoid } from '@reduxjs/toolkit'
 import {addNewPost, postAdded, RequestStatusSlice} from "./postsSlice";
 import {AppDispatch, RootState} from "../../app/store";
+import {selectAllUsers} from "../users/usersSlice";
 
 const AddPostForm = () => {
     const [title, setTitle] = useState('');
@@ -12,7 +13,7 @@ const AddPostForm = () => {
 
     const dispatch = useDispatch<AppDispatch>();
 
-    const users = useSelector((state:RootState) => state.users);
+    const users = useSelector(selectAllUsers);
 
     const canSave = [title, content, userId].every(Boolean) && addRequestStatus === 'idle'
 

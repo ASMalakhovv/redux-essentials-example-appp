@@ -8,9 +8,10 @@ import {ReactionButtons} from "./ReactionButtons";
 import {fetchPosts, Post, selectAllPosts, selectPostById, selectPostIds} from "./postsSlice";
 import {Spinner} from "../../components/Spinner";
 import {EntityId} from "@reduxjs/toolkit";
+import {useGetPostsQuery} from "../api/apiSlice";
 
-const PostExcerpt = React.memo(({postId}: { postId: EntityId }) => {
-    const post = useSelector((state: RootState) => selectPostById(state, postId))
+const PostExcerpt = React.memo(({ post }: any) => {
+    // const post = useSelector((state: RootState) => selectPostById(state, postId))
 
 
     return (
@@ -35,31 +36,24 @@ const PostExcerpt = React.memo(({postId}: { postId: EntityId }) => {
 })
 
 const PostsList = () => {
-
-    const posts = useSelector(selectAllPosts);
-    const postStatus = useSelector((state: RootState) => state.posts.status);
-    const error = useSelector((state: RootState) => state.posts.error);
-    const dispatch = useDispatch();
-    const orderedPostIds = useSelector(selectPostIds)
-
-    useEffect(() => {
-        if (postStatus === 'idle') {
-            dispatch(fetchPosts());
-        }
-    }, [postStatus, dispatch])
+    // @ts-ignore
+    const {
+        data: posts,
+        isLoading,
+        isSuccess,
+        isError
+    } = useGetPostsQuery('')
 
     let content
 
-    if (postStatus === 'loading') {
-        content = <Spinner text="Loading..."/>
-    } else if (postStatus === 'succeeded') {
-        // Sort posts in reverse chronological order by datetime string
-
-        content = orderedPostIds.map(postId => (
-            <PostExcerpt key={postId} postId={postId}/>
-        ))
-    } else if (postStatus === 'failed') {
-        content = <div>{error}</div>
+    if (isLoading) {
+        content = <Spinner text="Loading..." />
+    } else if (isSuccess) {
+        // @ts-ignore
+        content = posts.map(post => <PostExcerpt key={post.id} post={post} />)
+    } else if (isError) {
+        // @ts-ignore
+        content = <div>{error.toString()}</div>
     }
 
     return (

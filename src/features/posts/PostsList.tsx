@@ -1,6 +1,6 @@
 import {useDispatch, useSelector} from "react-redux";
 import {Link} from "react-router-dom";
-import React, {useEffect} from "react";
+import React, {useEffect, useMemo} from "react";
 import {RootState} from "../../app/store";
 import PostAuthor from "./PostAuthor";
 import {TimeAgo} from "./TimeAgo";
@@ -9,6 +9,7 @@ import {fetchPosts, Post, selectAllPosts, selectPostById, selectPostIds} from ".
 import {Spinner} from "../../components/Spinner";
 import {EntityId} from "@reduxjs/toolkit";
 import {useGetPostsQuery} from "../api/apiSlice";
+import classnames from "classnames";
 
 const PostExcerpt = React.memo(({ post }: any) => {
     // const post = useSelector((state: RootState) => selectPostById(state, postId))
@@ -38,19 +39,38 @@ const PostExcerpt = React.memo(({ post }: any) => {
 const PostsList = () => {
     // @ts-ignore
     const {
-        data: posts,
+        data: posts = [],
         isLoading,
         isSuccess,
-        isError
-    } = useGetPostsQuery('')
+        isFetching,
+        isError,
+        error,
+        refetch,
+    } = useGetPostsQuery(null)
+    debugger
+    const sortedPosts = useMemo(() => {
+        const sortedPosts = posts.slice()
+        // Sort posts in descending chronological order
+        // @ts-ignore
+        sortedPosts.sort((a, b) => b.date.localeCompare(a.date))
+        return sortedPosts
+    }, [posts])
 
     let content
 
     if (isLoading) {
         content = <Spinner text="Loading..." />
     } else if (isSuccess) {
+
         // @ts-ignore
-        content = posts.map(post => <PostExcerpt key={post.id} post={post} />)
+        const renderedPosts = sortedPosts.map(post => (
+            <PostExcerpt key={post.id} post={post} />
+        ))
+        const containerClassname = classnames('posts-container', {
+            disabled: isFetching
+        })
+        // @ts-ignore
+        content = <div className={containerClassname}>{renderedPosts}</div>
     } else if (isError) {
         // @ts-ignore
         content = <div>{error.toString()}</div>
@@ -59,6 +79,7 @@ const PostsList = () => {
     return (
         <section className="posts-list">
             <h2>Posts</h2>
+            <button onClick={refetch}>Refetch Posts</button>
             {content}
         </section>
     );
